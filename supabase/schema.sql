@@ -68,6 +68,10 @@ create policy "members update orders" on public.orders for update to authenticat
 ) with check (
   exists (select 1 from public.organization_members m where m.organization_id = orders.organization_id and m.user_id = (select auth.uid()))
 );
+drop policy if exists "members delete orders" on public.orders;
+create policy "members delete orders" on public.orders for delete to authenticated using (
+  exists (select 1 from public.organization_members m where m.organization_id = orders.organization_id and m.user_id = (select auth.uid()))
+);
 create policy "members read payments" on public.payments for select to authenticated using (
   exists (select 1 from public.organization_members m where m.organization_id = payments.organization_id and m.user_id = (select auth.uid()))
 );

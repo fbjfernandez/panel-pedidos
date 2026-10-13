@@ -33,6 +33,17 @@ Proyecto de demostración con React, Vite, Tailwind, Express y Supabase. **No ne
 1. Abre `https://TU-DOMINIO.vercel.app/api/orders` sin sesión. Debe responder un JSON: `{"error":"Inicia sesión"}` con código 401, **no 404**. Si hay 500, consulta Runtime Logs; suelen indicar variables faltantes.
 2. Abre tu página, inicia sesión, verifica los pedidos.
 3. Revisa en Supabase que hayas ejecutado `supabase/schema.sql` usando SQL Editor. Sólo hazlo si el esquema aún no existe; si ya existe, revisa antes de repetir migraciones.
+4. Si el esquema ya estaba creado, habilita la eliminación de pedidos ejecutando en SQL Editor:
+
+   ```sql
+   drop policy if exists "members delete orders" on public.orders;
+   create policy "members delete orders" on public.orders for delete to authenticated using (
+     exists (
+       select 1 from public.organization_members m
+       where m.organization_id = orders.organization_id and m.user_id = (select auth.uid())
+     )
+   );
+   ```
 
 ## Desarrollo local
 

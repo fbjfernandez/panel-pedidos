@@ -13,7 +13,10 @@ export async function api(path, options = {}) {
   const body = await res.text()
   let data
   try { data = body ? JSON.parse(body) : null }
-  catch { throw new Error(`La API respondió texto en vez de JSON (HTTP ${res.status}). Revisa Functions/Runtime Logs en Vercel.`) }
+  catch {
+    const detail = body.trim().slice(0, 200)
+    throw new Error(`La API respondió texto en vez de JSON (HTTP ${res.status})${detail ? `: ${detail}` : ''}. Revisa Functions/Runtime Logs en Vercel.`)
+  }
   if (!res.ok) throw new Error(data?.error || `Error HTTP ${res.status}`)
   return data
 }

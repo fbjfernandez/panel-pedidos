@@ -25,12 +25,12 @@ app.use('/api', async (req, res, next) => {
   next()
 })
 const orderSchema = z.object({
-  customer_name: z.string().trim().min(2).max(120),
+  customer_name: z.string().trim().min(2).max(120).regex(/^[\p{L}\s]+$/u, 'El destinatario solo puede contener letras'),
   customer_dni: z.string().trim().regex(/^\d{8}$|^\d{11}$/, 'DNI 8 dígitos o RUC 11 dígitos'),
   destination: z.enum(['Lima', 'Shalom', 'Olva']),
   agency: z.string().trim().max(100).default(''),
   address: z.string().trim().min(3).max(250),
-  phone: z.string().trim().max(24).default(''),
+  phone: z.string().trim().regex(/^\d{0,9}$/, 'El celular debe tener hasta 9 dígitos').default(''),
   amount: z.coerce.number().finite().nonnegative().max(99999999),
 })
 const paymentSchema = z.object({ method: z.enum(['Yape', 'Plin', 'Transferencia']), reference: z.string().trim().max(100).optional().default('') })
@@ -52,6 +52,28 @@ app.post('/api/orders', async (req, res) => {
   const { data, error } = await req.db.from('orders').insert({ ...parsed.data, organization_id: memberships[0].organization_id, created_by: req.user.id }).select().single()
   if (error) return sendError(res, error)
   res.status(201).json(data)
+})
+app.patch('/api/orders/:id', async (req, res) => {
+  const parsed = orderSchema.safeParse(req.body)
+  if (!parsed.success) return sendError(res, new Error(parsed.error.issues[0].message))
+  const { data, error } = await req.db.from('orders').update(parsed.data).eq('id', req.params.id).select().single()
+  if (error || !data) return sendError(res, error || new Error('Pedido no encontrado'), 404)
+  res.json(data)
+})
+app.delete('/api/orders/:id', async (req, res) => {
+  const { data: payments, error: paymentsError } = await req.db.from('payments').select('proof_path').eq('order_id', req.params.id)
+  if (paymentsError) return sendError(res, paymentsError)
+  const { data, error } = await req.db.from('orders').delete().eq('id', req.params.id).select('id').maybeSingle()
+  if (error || !data) return sendError(res, error || new Error('Pedido no encontrado'), 404)
+  const paths = payments.map(payment => payment.proof_path)
+  if (paths.length) {
+    const { error: cleanupError } = await req.db.storage.from('payment-proofs').remove(paths)
+    if (cleanupError) {
+      console.error('Pedido eliminado, pero no se pudieron borrar todos sus comprobantes:', cleanupError)
+      return res.json({ warning: 'El pedido se eliminó, pero no se pudieron borrar sus archivos de comprobante.' })
+    }
+  }
+  res.json({ success: true })
 })
 app.patch('/api/orders/:id/status', async (req, res) => {
   const parsed = z.object({ status: z.enum(['Nuevo', 'Preparando', 'Enviado', 'Entregado']) }).safeParse(req.body)
@@ -85,6 +107,11 @@ app.get('/api/orders/:id/proof', async (req, res) => {
   const signed = await req.db.storage.from('payment-proofs').createSignedUrl(payments[0].proof_path, 60)
   if (signed.error) return sendError(res, signed.error)
   res.json({ url: signed.data.signedUrl })
+})
+app.use((req, res) => {
+  const route = `${req.method} ${req.path}`
+  console.warn(`API route not found: ${route}`)
+  res.status(404).json({ error: `Ruta no encontrada: ${route}` })
 })
 app.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) return sendError(res, new Error('Archivo superior a 5 MB'))
