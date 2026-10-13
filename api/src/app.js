@@ -61,10 +61,14 @@ app.patch('/api/orders/:id', async (req, res) => {
   res.json(data)
 })
 app.delete('/api/orders/:id', async (req, res) => {
+  const { data: order, error: orderError } = await req.db.from('orders').select('id').eq('id', req.params.id).maybeSingle()
+  if (orderError) return sendError(res, orderError)
+  if (!order) return sendError(res, new Error('Pedido no encontrado'), 404)
   const { data: payments, error: paymentsError } = await req.db.from('payments').select('proof_path').eq('order_id', req.params.id)
   if (paymentsError) return sendError(res, paymentsError)
   const { data, error } = await req.db.from('orders').delete().eq('id', req.params.id).select('id').maybeSingle()
-  if (error || !data) return sendError(res, error || new Error('Pedido no encontrado'), 404)
+  if (error) return sendError(res, error, error.code === '42501' ? 403 : 400)
+  if (!data) return sendError(res, new Error('No se pudo eliminar el pedido. Verifica que la política "members delete orders" esté habilitada en Supabase.'), 403)
   const paths = payments.map(payment => payment.proof_path)
   if (paths.length) {
     const { error: cleanupError } = await req.db.storage.from('payment-proofs').remove(paths)
