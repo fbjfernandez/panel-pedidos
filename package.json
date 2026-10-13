@@ -1,0 +1,1 @@
+{"name":"logistica-demo","private":true,"scripts":{"dev":"concurrently -k \"npm run dev -w api\" \"npm run dev -w web\"","build":"npm run build -w web","check":"node --check api/src/index.js"},"workspaces":["web","api"],"devDependencies":{"concurrently":"^9.1.2","vite":"^6.4.4"}}
