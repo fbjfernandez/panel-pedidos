@@ -4,15 +4,9 @@ Proyecto de demostración con React, Vite, Tailwind, Express y Supabase. **No ne
 
 ## Subir a GitHub (sin crear una carpeta extra)
 
-1. Descarga el ZIP y **descomprímelo**.
-2. Abre tu repositorio `fbjfernandez/panel-pedidos` en GitHub.
-3. Carga el **contenido de la carpeta `panel-pedidos-listo`**, no la carpeta que lo contiene. Las carpetas `web`, `api` y `supabase` y los archivos `package.json` y `vercel.json` deben quedar en la **raíz** del repositorio.
-4. **Importante:** si ya existen archivos del mismo nombre, reemplázalos con esta versión. GitHub web puede resultar incómodo para sobrescribir muchos archivos; puedes hacerlo con GitHub Desktop (ver instrucciones más abajo).
-5. No subas archivos `.env`, claves privadas, `node_modules` ni `dist`.
 
-## Configurar Vercel (proyecto existente o nuevo)
 
-- Conecta el repositorio a Vercel, rama `main`.
+- Conecta el repositorio a Vercel, rama `main`. Si el repositorio contiene una carpeta `panel-pedidos` además de los archivos del proyecto, confirma que **Root Directory** apunte a la carpeta que contiene el `vercel.json` y las carpetas `api`, `web` y `supabase` que quieres desplegar.
 - **Root Directory: vacío** (raíz del repositorio; NO `web`, NO `dist`).
 - Framework: **Vite**.
 - Build Command: `npm run build` (viene en `vercel.json`).
@@ -31,9 +25,10 @@ Proyecto de demostración con React, Vite, Tailwind, Express y Supabase. **No ne
 ## Verificar
 
 1. Abre `https://TU-DOMINIO.vercel.app/api/orders` sin sesión. Debe responder un JSON: `{"error":"Inicia sesión"}` con código 401, **no 404**. Si hay 500, consulta Runtime Logs; suelen indicar variables faltantes.
-2. Abre tu página, inicia sesión, verifica los pedidos.
-3. Revisa en Supabase que hayas ejecutado `supabase/schema.sql` usando SQL Editor. Sólo hazlo si el esquema aún no existe; si ya existe, revisa antes de repetir migraciones.
-4. Si el esquema ya estaba creado, habilita la eliminación de pedidos ejecutando en SQL Editor:
+2. En Vercel → Deployments → último deployment → Functions, confirma que aparezcan las funciones de `api/orders`. Si una solicitud a `/api/orders/<id>` o `/api/orders/<id>/proof` aún devuelve la página `NOT_FOUND` de Vercel, revisa que el deployment incluya `api/orders/[id].js` y `api/orders/[id]/proof.js`; un 404 JSON con `Ruta no encontrada` viene del backend y no del enrutamiento de Vercel.
+3. Abre tu página, inicia sesión, verifica los pedidos.
+4. Revisa en Supabase que hayas ejecutado `supabase/schema.sql` usando SQL Editor. Sólo hazlo si el esquema aún no existe; si ya existe, revisa antes de repetir migraciones.
+5. Si el esquema ya estaba creado, habilita la eliminación de pedidos ejecutando en SQL Editor:
 
    ```sql
    drop policy if exists "members delete orders" on public.orders;
