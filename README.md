@@ -28,17 +28,7 @@ Proyecto de demostración con React, Vite, Tailwind, Express y Supabase. **No ne
 2. En Vercel → Deployments, confirma que el deployment Production usa la rama `main` y el commit más reciente de GitHub. En Settings → Build and Deployment, deja **Root Directory vacío** (raíz del repositorio, donde están `vercel.json`, `api/` y `web/`). En el detalle del deployment → Functions, confirma que aparecen las funciones de `api/orders`. Si el deployment apunta a otro commit o no lista esas funciones, despliega la última versión de `main`; no cambies las rutas de Supabase para corregir un `NOT_FOUND` de Vercel.
 3. Abre tu página, inicia sesión, verifica los pedidos.
 4. Revisa en Supabase que hayas ejecutado `supabase/schema.sql` usando SQL Editor. Sólo hazlo si el esquema aún no existe; si ya existe, revisa antes de repetir migraciones.
-5. Si el esquema ya estaba creado, habilita la eliminación de pedidos ejecutando en SQL Editor:
-
-   ```sql
-   drop policy if exists "members delete orders" on public.orders;
-   create policy "members delete orders" on public.orders for delete to authenticated using (
-     exists (
-       select 1 from public.organization_members m
-       where m.organization_id = orders.organization_id and m.user_id = (select auth.uid())
-     )
-   );
-   ```
+5. Si el esquema ya existe, no vuelvas a ejecutar `supabase/schema.sql`. Aplica las migraciones pendientes en orden, tal como se explica en las secciones siguientes.
 
 ## Desarrollo local
 
@@ -50,6 +40,27 @@ Node.js 20.19+ / 22.12+, ejecuta `npm install` en raíz, configura `web/.env` y 
 2. Copia los archivos **dentro** de `panel-pedidos-listo` al directorio local del repositorio, aceptando reemplazar los que ya están. No borres `.git`.
 3. En GitHub Desktop revisa los cambios, Commit to main y Push origin.
 4. Revisa el nuevo Deployment en Vercel.
+
+## Compartir pedidos y recuperar contraseña
+
+- Las cuentas autenticadas pueden consultar los pedidos, pagos y comprobantes. Consulta de pedidos por fechas se basa en cuándo se registró cada pedido; el resumen muestra cantidad e importe total del resultado.
+- Para aplicar esto a una base Supabase ya creada, ejecuta una sola vez [`supabase/migrations/20261013_share_orders.sql`](./supabase/migrations/20261013_share_orders.sql) desde Supabase → SQL Editor.
+- Para una instalación nueva, `supabase/schema.sql` ya contiene las políticas de lectura compartida.
+- En Supabase → Authentication → URL Configuration, agrega el dominio del panel (y el dominio local `http://localhost:5173` si lo usas) a **Redirect URLs**. El enlace de recuperación regresa al origen del panel; desde ahí se establece la nueva contraseña.
+
+## Roles de usuario
+
+- **Operador:** registra pedidos, completa/edita datos, cambia el estado de preparación y registra pagos.
+- **Solo lectura:** consulta e imprime pedidos, sin poder modificarlos.
+- **Administrador:** tiene permisos de operador, puede eliminar pedidos y asignar roles desde el botón **Usuarios**.
+- Las cuentas nuevas empiezan como **Solo lectura**. Para aplicar roles a una base existente, ejecuta [`supabase/migrations/20261014_roles.sql`](./supabase/migrations/20261014_roles.sql) después de la migración de pedidos compartidos. Para una instalación nueva, los roles están incluidos en `supabase/schema.sql`.
+- Después de la migración, promueve la cuenta inicial a administradora desde Supabase → SQL Editor, reemplazando el correo por el de esa cuenta:
+
+  ```sql
+  update public.app_users set role = 'admin' where email = 'admin@example.com';
+  ```
+
+- Luego el administrador asigna **Operador** o **Solo lectura** a las demás cuentas desde el panel. No es posible quitar desde la interfaz el último rol de administrador.
 
 ## Alcance y privacidad
 
