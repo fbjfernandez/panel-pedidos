@@ -18,14 +18,14 @@ Proyecto de demostración con React, Vite, Tailwind, Express y Supabase. **No ne
   - `VITE_SUPABASE_ANON_KEY`: clave pública anon/legacy de Supabase.
   - `SUPABASE_URL`: misma Project URL.
   - `SUPABASE_ANON_KEY`: misma clave pública anon/legacy.
-  - `WEB_ORIGIN`: URL real del sitio `https://panel-pedidos-navy.vercel.app` (o tu dominio actual). Si usas otros dominios de preview, sepáralos por comas.
+  - `WEB_ORIGIN`: URL real del sitio que aparece en Vercel, sin asumir un nombre de dominio específico. Si usas otros dominios de preview, sepáralos por comas.
 - `PORT` no es necesario en Vercel; sólo se utiliza para el servidor local.
 - Después de configurar variables, **despliega una nueva compilación**.
 
 ## Verificar
 
-1. Abre `https://TU-DOMINIO.vercel.app/api/orders` sin sesión. Debe responder un JSON: `{"error":"Inicia sesión"}` con código 401, **no 404**. Si hay 500, consulta Runtime Logs; suelen indicar variables faltantes.
-2. En Vercel → Deployments → último deployment → Functions, confirma que aparezcan las funciones de `api/orders`. Si una solicitud a `/api/orders/<id>` o `/api/orders/<id>/proof` aún devuelve la página `NOT_FOUND` de Vercel, revisa que el deployment incluya `api/orders/[id].js` y `api/orders/[id]/proof.js`; un 404 JSON con `Ruta no encontrada` viene del backend y no del enrutamiento de Vercel.
+1. Copia el dominio asignado al proyecto en Vercel y abre `https://TU-DOMINIO.vercel.app/api/orders` sin sesión. Debe responder JSON con `{"error":"Inicia sesión"}` y código 401, no una página de Vercel. Prueba también `https://TU-DOMINIO.vercel.app/api/orders/test-id/proof`: debe responder JSON 401. Un 401 confirma que la ruta llegó a la función; un 404 de texto `NOT_FOUND` significa que Vercel no publicó/enrutó la función.
+2. En Vercel → Deployments, confirma que el deployment Production usa la rama `main` y el commit más reciente de GitHub. En Settings → Build and Deployment, deja **Root Directory vacío** (raíz del repositorio, donde están `vercel.json`, `api/` y `web/`). En el detalle del deployment → Functions, confirma que aparecen las funciones de `api/orders`. Si el deployment apunta a otro commit o no lista esas funciones, despliega la última versión de `main`; no cambies las rutas de Supabase para corregir un `NOT_FOUND` de Vercel.
 3. Abre tu página, inicia sesión, verifica los pedidos.
 4. Revisa en Supabase que hayas ejecutado `supabase/schema.sql` usando SQL Editor. Sólo hazlo si el esquema aún no existe; si ya existe, revisa antes de repetir migraciones.
 5. Si el esquema ya estaba creado, habilita la eliminación de pedidos ejecutando en SQL Editor:
