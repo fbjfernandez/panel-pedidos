@@ -44,23 +44,22 @@ Node.js 20.19+ / 22.12+, ejecuta `npm install` en raíz, configura `web/.env` y 
 ## Compartir pedidos y recuperar contraseña
 
 - Las cuentas autenticadas pueden consultar los pedidos, pagos y comprobantes. Consulta de pedidos por fechas se basa en cuándo se registró cada pedido; el resumen muestra cantidad e importe total del resultado.
-- Para aplicar esto a una base Supabase ya creada, ejecuta una sola vez [`supabase/migrations/20261013_share_orders.sql`](./supabase/migrations/20261013_share_orders.sql) desde Supabase → SQL Editor.
+- Para aplicar esto a una base Supabase ya creada, ejecuta [`supabase/migrations/20261013_share_orders.sql`](./supabase/migrations/20261013_share_orders.sql) desde Supabase → SQL Editor.
 - Para una instalación nueva, `supabase/schema.sql` ya contiene las políticas de lectura compartida.
 - En Supabase → Authentication → URL Configuration, agrega el dominio del panel (y el dominio local `http://localhost:5173` si lo usas) a **Redirect URLs**. El enlace de recuperación regresa al origen del panel; desde ahí se establece la nueva contraseña.
 
 ## Roles de usuario
 
 - **Operador:** registra pedidos, completa/edita datos, cambia el estado de preparación y registra pagos.
-- **Solo lectura:** consulta e imprime pedidos, sin poder modificarlos.
 - **Administrador:** tiene permisos de operador, puede eliminar pedidos y asignar roles desde el botón **Usuarios**.
-- Las cuentas nuevas empiezan como **Solo lectura**. Para aplicar roles a una base existente, ejecuta [`supabase/migrations/20261014_roles.sql`](./supabase/migrations/20261014_roles.sql) después de la migración de pedidos compartidos. Para una instalación nueva, los roles están incluidos en `supabase/schema.sql`.
+- Las cuentas nuevas empiezan como **Operador**. Para aplicar roles a una base existente, ejecuta estas migraciones en orden: [`supabase/migrations/20261013_share_orders.sql`](./supabase/migrations/20261013_share_orders.sql), [`supabase/migrations/20261014_roles.sql`](./supabase/migrations/20261014_roles.sql) y [`supabase/migrations/20261015_two_roles.sql`](./supabase/migrations/20261015_two_roles.sql). En SQL Editor ejecuta el contenido completo de cada archivo, no solo una selección: `has_app_role` se crea al principio de la segunda migración y luego se utiliza en sus políticas. La última migración convierte los usuarios de Solo lectura existentes a Operador. Para una instalación nueva, los dos roles están incluidos en `supabase/schema.sql`.
 - Después de la migración, promueve la cuenta inicial a administradora desde Supabase → SQL Editor, reemplazando el correo por el de esa cuenta:
 
   ```sql
   update public.app_users set role = 'admin' where email = 'admin@example.com';
   ```
 
-- Luego el administrador asigna **Operador** o **Solo lectura** a las demás cuentas desde el panel. No es posible quitar desde la interfaz el último rol de administrador.
+- Luego el administrador asigna **Operador** o **Administrador** a las demás cuentas desde el panel. No es posible quitar desde la interfaz el último rol de administrador.
 
 ## Alcance y privacidad
 

@@ -72,7 +72,7 @@ app.get('/api/users', requireRole('admin'), async (req, res) => {
   res.json(data)
 })
 app.patch('/api/users/:id/role', requireRole('admin'), async (req, res) => {
-  const parsed = z.object({ role: z.enum(['admin', 'operator', 'viewer']) }).safeParse(req.body)
+  const parsed = z.object({ role: z.enum(['admin', 'operator']) }).safeParse(req.body)
   if (!parsed.success) return sendError(res, new Error('Rol inválido'))
   if (!z.string().uuid().safeParse(req.params.id).success) return sendError(res, new Error('Usuario inválido'))
   if (req.params.id === req.user.id && parsed.data.role !== 'admin') {

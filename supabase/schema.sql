@@ -12,7 +12,7 @@ create table if not exists public.organization_members (
 create table if not exists public.app_users (
   id uuid primary key references auth.users(id) on delete cascade,
   email text not null,
-  role text not null default 'viewer' check (role in ('admin','operator','viewer')),
+  role text not null default 'operator' check (role in ('admin','operator')),
   created_at timestamptz not null default now()
 );
 create table if not exists public.orders (
@@ -79,18 +79,24 @@ drop trigger if exists on_auth_user_created_app_user on auth.users;
 create trigger on_auth_user_created_app_user after insert or update of email on auth.users
 for each row execute function public.sync_app_user();
 
-create or replace function public.ensure_app_admin_exists() returns trigger
+create or replace function public.protect_last_app_admin() returns trigger
 language plpgsql security definer set search_path = '' as $$
+declare
+  admin_count integer;
 begin
-  if not exists (select 1 from public.app_users where role = 'admin') then
-    raise exception 'Debe quedar al menos un administrador';
+  if old.role = 'admin' and new.role <> 'admin' then
+    select count(*) into admin_count from public.app_users where role = 'admin';
+    if admin_count <= 1 then
+      raise exception 'Debe quedar al menos un administrador';
+    end if;
   end if;
   return new;
 end;
 $$;
 drop trigger if exists app_users_require_admin on public.app_users;
-create constraint trigger app_users_require_admin after update of role or delete on public.app_users
-deferrable initially deferred for each row execute function public.ensure_app_admin_exists();
+drop trigger if exists protect_last_app_admin on public.app_users;
+create trigger protect_last_app_admin before update of role on public.app_users
+for each row execute function public.protect_last_app_admin();
 
 alter table public.organizations enable row level security;
 alter table public.organization_members enable row level security;
@@ -98,7 +104,8 @@ alter table public.app_users enable row level security;
 alter table public.orders enable row level security;
 alter table public.payments enable row level security;
 
-grant select, update on public.app_users to authenticated;
+grant select on public.app_users to authenticated;
+grant update (role) on public.app_users to authenticated;
 create policy "users read own profile or admins read all" on public.app_users for select to authenticated
 using (id = (select auth.uid()) or (select public.has_app_role('admin')));
 create policy "admins update user roles" on public.app_users for update to authenticated
