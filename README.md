@@ -4,13 +4,7 @@ Proyecto de demostración con React, Vite, Tailwind, Express y Supabase. **No ne
 
 ## Subir a GitHub (sin crear una carpeta extra)
 
-1. Descarga el ZIP y **descomprímelo**.
-2. Abre tu repositorio `fbjfernandez/panel-pedidos` en GitHub.
-3. Carga el **contenido de la carpeta `panel-pedidos-listo`**, no la carpeta que lo contiene. Las carpetas `web`, `api` y `supabase` y los archivos `package.json` y `vercel.json` deben quedar en la **raíz** del repositorio.
-4. **Importante:** si ya existen archivos del mismo nombre, reemplázalos con esta versión. GitHub web puede resultar incómodo para sobrescribir muchos archivos; puedes hacerlo con GitHub Desktop (ver instrucciones más abajo).
-5. No subas archivos `.env`, claves privadas, `node_modules` ni `dist`.
 
-## Configurar Vercel (proyecto existente o nuevo)
 
 - Conecta el repositorio a Vercel, rama `main`.
 - **Root Directory: vacío** (raíz del repositorio; NO `web`, NO `dist`).
