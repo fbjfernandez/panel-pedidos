@@ -9,7 +9,14 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=flat-square&logo=supabase&logoColor=white)
 ![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white)
+### 🚀 [**Ver Demo en Vivo →**](https://panel-pedidos-h9q74bz70-fbjfernandezs-projects.vercel.app)
 
+## 🧪 Cómo probar la demo
+
+1. Entra a la [demo en Vercel](https://panel-pedidos-h9q74bz70-fbjfernandezs-projects.vercel.app)
+2. Inicia sesión con las credenciales de prueba provistas(`fbjfernandez8103@gmail.com` / Contraseña: `cody1234`) o regístrate con un nuevo correo para explorar la bandeja unificada de pedidos 
+3. Utiliza los filtros superiores para alternar entre los canales de envío (**Lima, Shalom, Olva**)
+4. Prueba las acciones rápidas en cada tarjeta de pedido: genera la vista previa para impresión térmica con el botón **Ticket**, actualiza la conciliación de pago, edita los datos o elimina un registro de prueba según lo necesites.
 Sistema web que unifica tus pedidos y elimina los chats de WhatsApp como sistema de control. Cada pago queda vinculado a su comprobante y cada pedido genera su ticket de envio con un solo boton, listo para imprimir directo. Todo es rapido y se controla desde el celular, para mantener un orden absoluto.
  
 ## Que hace
